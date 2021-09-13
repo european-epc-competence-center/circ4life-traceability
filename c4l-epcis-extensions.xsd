@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:epcglobal="urn:epcglobal:xsd:1"
+           xmlns:epcis="urn:epcglobal:epcis:xsd:1"
+           xmlns:c4l="https://circ4life.eecc.info/epcis"
+           targetNamespace="https://circ4life.eecc.info/epcis"
+           elementFormDefault="qualified">
+
+    <xs:annotation>
+        <xs:documentation xml:lang="en">
+
+            This document describes the The EPCIS Extension for Ecological Impacts (EXE)
+            developed within the CIRC4Life research project.
+            This project has received funding from the European Union’s Horizon 2020 research and innovation programme
+            under grant agreement No 776503.
+
+            The purpose of this extension is to gather data about ecological impacts along with potentially any EPCIS
+            event. This is done in order to enable a dynamic (online/real time) assessment of the ecological footprint
+            and impact of an individual product based on primary data.
+
+            <copyright>Copyright 2018-2019 European EPC Competence Center GmbH (EECC)</copyright>
+            <licence>
+                This document is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License.
+                See http://creativecommons.org/licenses/by-sa/4.0/ for details.
+            </licence>
+
+            <disclaimer>
+                THIS DOCUMENT IS PROVIDED “AS IS” WITH NO WARRANTIES WHATSOEVER, INCLUDING ANY WARRANTY OF
+                MERCHANTABILITY, NONINFRINGMENT, FITNESS FOR PARTICULAR PURPOSE, OR ANY WARRANTY OTHER WISE ARISING OUT
+                OF THIS SPECIFICATION. EECC disclaims all liability for any damages arising from use or misuse of this
+                Standard, whether special, indirect, consequential, or compensatory damages, and including liability for
+                infringement of any intellectual property rights, relating to use of information in or reliance upon
+                this document.
+
+                EECC retains the right to make changes to this document at any time, without notice. EECC makes no
+                warranty for the use of this document and assumes no responsibility for any errors which may appear in
+                the document, nor does it make a commitment to update the information contained herein.
+            </disclaimer>
+            <specification>EPCIS Extension for Ecological Impacts - Version 2.1.0</specification>
+        </xs:documentation>
+    </xs:annotation>
+
+
+    <!--
+    The following specifications from the EPCIS 1.2 standard may be fetched from
+    https://www.gs1.org/docs/epc/epcis_1_2_schema-20160929/
+    copies are kept at
+    https://circ4life.eecc.info/doc/
+    -->
+    <xs:import namespace="urn:epcglobal:xsd:1"
+               schemaLocation="https://www.gs1.org/docs/epc/epcis_1_2_schema-20160929/EPCglobal.xsd"/>
+    <xs:import namespace="urn:epcglobal:epcis:xsd:1"
+               schemaLocation="https://www.gs1.org/docs/epc/epcis_1_2_schema-20160929/EPCglobal-epcis-1_2.xsd"/>
+
+
+    <!-- simple types -->
+
+    <xs:simpleType name="lifeTime">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">
+                (Estimated) time from manufacturing until disposal of an item or good
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:duration"/>
+    </xs:simpleType>
+
+    <xs:simpleType name="UNUKey">
+        <xs:annotation>
+            <xs:documentation>
+                The UNU-Key describes the WEEE category of a device. See
+                https://unu.edu/projects/e-waste-quantification.html#outputs
+                Examples of relevance in CIRC4Life:
+                0303 - Laptops (incl. tablets)
+                0306 - Mobile Phones (incl. smartphones, pagers)
+                0402 - Portable Audio and Video (f.i. MP3, e-readers, car navigation)
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:nonNegativeInteger"/>
+    </xs:simpleType>
+
+    <xs:simpleType name="HSCode">
+        <xs:annotation>
+            <xs:documentation>
+                The Harmonized Commodity Description and Coding System, also known as
+                the Harmonized System (HS) of tariff nomenclature is an internationally
+                standardized system of names and numbers to classify traded products.
+                UNUKeys correspond to (usually more than one) HS Code, but HS Codes
+                are more fine grained and many HS codes to not have any corresponding
+                UNU Key.
+                See https://www.foreign-trade.com/reference/hscode.htm
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:nonNegativeInteger"/>
+    </xs:simpleType>
+
+    <!-- Resources -->
+
+    <xs:element name="resourceList">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">
+                List of Resources consumed/used up in the business step
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:choice maxOccurs="unbounded">
+                <!-- Standard EPCIS -->
+                <xs:element name="epc" type="epcglobal:EPC"/>
+                <xs:element name="quantityElement" type="epcis:QuantityElementType"/>
+
+                <!-- CIRC4Life specific -->
+                <xs:element name="resourceElement" type="c4l:resourceElementType"/>
+            </xs:choice>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:complexType name="resourceElementType">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">
+                ResourceElement is different from quantityElement in allowing for more general resource (water,
+                electricity,...) than an EPCClass and additionally the source of each resource (renewable,
+                primary/secondary, ...) may be specified.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="resource" type="c4l:resourceType"/>
+            <xs:element name="amount" type="c4l:measure"/>
+            <xs:element name="source" type="c4l:sourceType" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="measure">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">
+                This type optionally contains a number with an optional unit of measure.
+                It can be used to quantify countable or measurable quantities of resources
+                (liters of water, Wh of energy, etc.) or waste, distances, etc.
+                Utilising the flexibility in the UOM type, it is possible to also use any scale, also qualitative ones.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:sequence minOccurs="0">
+            <xs:element name="quantity" type="xs:decimal"/>
+            <xs:element name="uom" type="c4l:UOMType" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:simpleType name="UOMType">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">
+                This type is the same as epcis:UOM, but for the restriction to allow only certain units in epcis.
+                It is strongly recommended to use a code from the list published in "Recommendation No. 20: CODES FOR
+                UNITS OF MEASURE USED IN INTERNATIONAL TRADE" by the UNITED NATIONS ECONOMIC COMMISSION FOR EUROPE.
+                If some other measure is used, the URI of the corresponding ontology SHOULD be used.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+
+    <xs:simpleType name="resourceType">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">
+                Resources which do not fit into an EPCClass such as water, electricity, etc. can be specified in a
+                resource element. It is usually preferable to use an EPC (class) for the used resource, if available.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:anyURI"/>
+    </xs:simpleType>
+
+    <xs:simpleType name="sourceType">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">
+                Where the resource is taken from, e.g. energy might be from a renewable or from a fossil source,
+                materials may be primary or secondary (recycled), etc.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:anyURI"/>
+    </xs:simpleType>
+
+
+    <!-- Waste -->
+
+    <xs:element name="wasteList">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">
+                List of waste produced in the business step
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:choice maxOccurs="unbounded">
+                <!-- Standard EPCIS -->
+                <xs:element name="epc" type="epcglobal:EPC"/>
+                <xs:element name="quantityElement" type="epcis:QuantityElementType"/>
+
+                <!-- CIRC4Life specific -->
+                <xs:element name="wasteElement" type="c4l:wasteElementType"/>
+            </xs:choice>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:complexType name="wasteElementType">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">
+                WasteElement is similar to ResourceElement but denoting waste produced instead of resources consumed
+            </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="waste" type="c4l:wasteType"/>
+            <xs:element name="amount" type="c4l:measure"/>
+            <xs:element name="sink" type="c4l:sinkType" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:simpleType name="wasteType">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">
+                Waste such as polluted water, exhaust fumes, etc.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:anyURI"/>
+    </xs:simpleType>
+
+    <xs:simpleType name="sinkType">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">
+                Where the waste is disposed (released, treatment, landfill, burning for energy,...)
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:anyURI"/>
+    </xs:simpleType>
+
+
+    <!-- Transportation -->
+
+    <xs:element name="transportList">
+        <xs:complexType>
+            <xs:annotation>
+                <xs:documentation xml:lang="en">
+                    If the environmental impact of transportation can not be broken down into resource consumption
+                    (fuel,...) and waste (exhaust fumes,...) then a transportList can be used instead.
+                </xs:documentation>
+            </xs:annotation>
+            <xs:sequence>
+                <xs:element name="transportation" type="c4l:transportElementType" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:complexType name="transportElementType">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">
+                How far and by which means
+            </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="vehicle" type="c4l:vehicleType"/>
+            <xs:element name="distance" type="c4l:measure"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:simpleType name="vehicleType">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">
+                The type of vehicle such as lorry, plain, boat, etc.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:anyURI"/>
+    </xs:simpleType>
+
+
+    <!-- Other Impact -->
+
+    <xs:element name="impactList">
+        <xs:complexType>
+            <xs:annotation>
+                <xs:documentation xml:lang="en">
+                    The list of further impacts can be used to track social or ecological impacts that are not
+                    associated with resource consumption or waste production such as e.g. land usage.
+                </xs:documentation>
+            </xs:annotation>
+            <xs:sequence>
+                <xs:element name="impact" type="c4l:impactElementType" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:complexType name="impactElementType">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">
+                The type of impact together with an (optional) suitable measure.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="impactType" type="c4l:impactType"/>
+            <xs:element name="measure" type="c4l:measure"/>
+        </xs:sequence>
+    </xs:complexType>
+
+
+    <xs:simpleType name="impactType">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">
+                The type of impact, such as land usage, social impacts, etc. Using an URI to refer to an ontology within
+                the semantic web.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:anyURI"/>
+    </xs:simpleType>
+
+</xs:schema>
